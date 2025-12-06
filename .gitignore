@@ -42,3 +42,17 @@ build/
 # Temporary files
 tmp/
 temp/
+temp_extracted/
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Redis data
+dump.rdb
+appendonly.aof
+
+# Compressed files
+*.zip
+*.tar.gz
+*.rar

@@ -53,12 +53,43 @@ d:/Redis/
 └── README.md
 ```
 
+## 📚 Documentación Técnica
+
+Para entender en profundidad cómo funciona el sistema:
+
+- **[SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md)** - Arquitectura, flujos de datos y comparativas de rendimiento
+- **[CODE_EXPLANATION.md](CODE_EXPLANATION.md)** - Explicación detallada del código fuente
+- **[API.md](API.md)** - Referencia completa de la API REST
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Guía de desarrollo y mejores prácticas
+
 ## Configuración
+
+### Opción 1: Usando Docker (Recomendado) 🐳
+
+La forma más rápida de levantar Redis con interfaz gráfica:
+
+```bash
+# 1. Levantar Redis y RedisInsight
+docker-compose up -d
+
+# 2. Instalar dependencias del backend
+cd backend
+npm install
+
+# 3. El sistema está listo para usar
+```
+
+**Servicios disponibles:**
+
+- Redis: `localhost:6379`
+- RedisInsight (GUI): `http://localhost:5540`
+
+### Opción 2: Redis Local
 
 1.  **Requisitos Previos**:
 
     - Node.js instalado.
-    - Redis server (opcional - el sistema usa Mock Redis si no está disponible).
+    - Redis server instalado localmente (o el sistema usará Mock Redis automáticamente).
 
 2.  **Instalación**:
     ```bash
