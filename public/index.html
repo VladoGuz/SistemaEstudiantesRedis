@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis Student Portal Demo</title>
+    <style>
+        :root {
+            --primary: #d53f3f; /* Redis color */
+            --bg: #1e1e1e;
+            --card-bg: #2d2d2d;
+            --text: #e0e0e0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        h2 { color: var(--primary); margin-top: 0; }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #b33232; }
+        input {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #333;
+            color: white;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        .status-box {
+            font-family: monospace;
+            background: #000;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            min-height: 40px;
+            color: #0f0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #444;
+        }
+        th { color: var(--primary); }
+        .latency-badge {
+            background: #444;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        .highlight { animation: flash 1s; }
+        @keyframes flash {
+            0% { background-color: rgba(213, 63, 63, 0.5); }
+            100% { background-color: transparent; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Redis High-Performance Portal</h1>
+            <p>Demo en tiempo real de Sesiones, Caché y Leaderboard</p>
+        </div>
+
+        <!-- LOGIN / SESSION -->
+        <div class="card">
+            <h2>🔑 Sesión (Hash)</h2>
+            <div id="login-form">
+                <p>Simular Login de Estudiante</p>
+                <input type="text" id="userIdInput" placeholder="ID de Usuario (ej. student123)">
+                <button onclick="login()">Crear Sesión</button>
+            </div>
+            <div id="session-info" style="display:none;">
+                <p>🟢 Sesión Activa</p>
+                <div class="status-box" id="session-token"></div>
+                <button onclick="logout()" style="margin-top:10px; background:#555;">Cerrar Sesión</button>
+            </div>
+            <p class="latency-badge" id="session-latency">Latency: -</p>
+        </div>
+
+        <!-- PROFILE / CACHE -->
+        <div class="card">
+            <h2>💾 Perfil (Cache-Aside)</h2>
+            <p>Carga de datos simulada (DB vs Redis)</p>
+            <button onclick="loadProfile()">Cargar Mi Perfil</button>
+            <div class="status-box" id="profile-data">Esperando consulta...</div>
+            <p class="latency-badge" id="profile-latency">Latency: -</p>
+        </div>
+
+        <!-- LEADERBOARD -->
+        <div class="card full-width">
+            <h2>🏆 Leaderboard (Sorted Sets)</h2>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button onclick="refreshLeaderboard()">🔄 Actualizar Tabla</button>
+                <input type="number" id="scoreInput" placeholder="Nuevo Puntaje" style="width:150px; margin:0;">
+                <button onclick="updateScore()">Subir Nota</button>
+            </div>
+            <p class="latency-badge" id="leaderboard-latency">Latency: -</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th># Rank</th>
+                        <th>Usuario ID</th>
+                        <th>Puntaje (Score)</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <tr><td colspan="3">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BENCHMARK -->
+        <div class="card full-width">
+            <h2>⚡ Benchmark: SQL vs Redis</h2>
+            <p>Comparación de tiempo de respuesta para una consulta compleja simulada.</p>
+            <button onclick="runBenchmark()">🔥 Iniciar Benchmark</button>
+            
+            <div style="margin-top: 20px; display: grid; grid-template-columns: 100px 1fr; gap: 10px; align-items: center;">
+                <!-- SQL Bar -->
+                <div><strong>SQL (Sim)</strong></div>
+                <div style="background: #333; height: 30px; border-radius: 4px; overflow: hidden; position: relative;">
+                    <div id="bar-sql" style="width: 0%; height: 100%; background: #f44336; transition: width 1s;"></div>
+                    <span id="text-sql" style="position: absolute; left: 10px; top: 5px; font-size: 0.9rem;">0 ms</span>
+                </div>
+
+                <!-- Redis Bar -->
+                <div><strong>Redis</strong></div>
+                <div style="background: #333; height: 30px; border-radius: 4px; overflow: hidden; position: relative;">
+                    <div id="bar-redis" style="width: 0%; height: 100%; background: #4caf50; transition: width 1s;"></div>
+                    <span id="text-redis" style="position: absolute; left: 10px; top: 5px; font-size: 0.9rem;">0 ms</span>
+                </div>
+            </div>
+            <p id="benchmark-result" style="margin-top: 15px; font-weight: bold; color: #aaa;"></p>
+        </div>
+
+        <!-- STRESS TEST -->
+        <div class="card full-width" style="border: 1px solid #d53f3f;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2>🔥 Potencia Bruta (Stress Test)</h2>
+                <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:0.8rem;">1000 Concurrent Users</span>
+            </div>
+            <p>Simula 1000 usuarios realizando operaciones simultáneas (Login + Update Score + Read Rank).</p>
+            
+            <button onclick="runStressTest()" id="btn-stress">🚀 Lanzar 3000 Operaciones Simultáneas</button>
+            
+            <div id="stress-results" style="margin-top:20px; display:none; grid-template-columns: 1fr 1fr 1fr; gap:10px; text-align:center;">
+                <div style="background:#000; padding:10px; border-radius:4px;">
+                    <div style="font-size:0.8rem; color:#aaa;">Tiempo Total</div>
+                    <div id="stress-time" style="font-size:1.5rem; color:white;">-</div>
+                </div>
+                <div style="background:#000; padding:10px; border-radius:4px;">
+                    <div style="font-size:0.8rem; color:#aaa;">Ops Totales</div>
+                    <div id="stress-ops" style="font-size:1.5rem; color:white;">-</div>
+                </div>
+                <div style="background:#000; padding:10px; border-radius:4px; border: 1px solid #4caf50;">
+                    <div style="font-size:0.8rem; color:#4caf50;">Throughput</div>
+                    <div id="stress-throughput" style="font-size:1.5rem; color:#4caf50;">-</div>
+                    <div style="font-size:0.7rem; color:#4caf50;">ops/sec</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

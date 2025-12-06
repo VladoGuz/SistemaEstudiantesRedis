@@ -1,190 +1,77 @@
-# Sistema de Alto Rendimiento con Redis
+# Proyecto Final Redis - Portal Estudiantil
 
-Este proyecto demuestra un sistema de alto rendimiento utilizando Redis para la gestión de sesiones, caché y una tabla de clasificación (leaderboard) en tiempo real.
+Sistema de alto rendimiento para gestión de sesiones, caché y leaderboard académico utilizando Redis y Node.js.
 
-## Características
+## Requisitos Previos
 
-1.  **Gestión de Sesiones**:
+1.  **Node.js**: v14 o superior.
+2.  **Redis**: Debe tener un servidor Redis ejecutándose en `localhost:6379`.
 
-    - Utiliza Redis para almacenar sesiones de usuario con un TTL (Tiempo de Vida).
-    - Implementa Inicio de Sesión, Cierre de Sesión y Verificación de Sesión.
-    - **Patrón de Clave**: `session:{sessionId}` (Hash)
+## Instalación
 
-2.  **Caché**:
-
-    - Simula una consulta lenta a la base de datos (retraso de 2 segundos).
-    - Almacena el resultado en caché en Redis para un acceso posterior rápido.
-    - **Patrón de Clave**: `student:{id}:profile` (String)
-    - **Estrategia**: Cache-Aside
-
-3.  **Leaderboard en Tiempo Real**:
-    - Utiliza Redis Sorted Sets para mantener una tabla de clasificación basada en puntajes.
-    - Soporta el envío de puntajes y la recuperación de los 10 mejores usuarios.
-    - **Patrón de Clave**: `leaderboard:academic` (Sorted Set)
-
-## Estructura de datos
-
-```
-d:/Redis/
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   │   └── redis.js
-│   │   ├── controllers/
-│   │   │   ├── sessionController.js
-│   │   │   ├── dataController.js
-│   │   │   └── leaderboardController.js
-│   │   ├── routes/
-│   │   │   ├── sessionRoutes.js
-│   │   │   ├── dataRoutes.js
-│   │   │   └── leaderboardRoutes.js
-│   │   └── server.js
-│   ├── frontend_server.js
-│   ├── stress_test.js
-│   ├── .env
-│   ├── package.json
-│   └── package-lock.json
-├── frontend/
-│   ├── css/
-│   │   └── style.css
-│   ├── js/
-│   │   └── app.js
-│   └── index.html
-└── README.md
-```
-
-## Configuración
-
-1.  **Requisitos Previos**:
-
-    - Node.js instalado.
-    - Redis server (opcional - el sistema usa Mock Redis si no está disponible).
-
-2.  **Instalación**:
+1.  Clonar el repositorio o descargar el código.
+2.  Instalar dependencias:
     ```bash
-    cd backend
     npm install
     ```
 
+## Configuración
+
+El proyecto espera que Redis esté ejecutándose en el puerto por defecto. Si necesitas cambiar la configuración, puedes crear un archivo `.env` en la raíz (aunque no es estrictamente necesario para la prueba local por defecto):
+
+```env
+REDIS_URL=redis://localhost:6379
+```
+
 ## Ejecución
 
-### Opción 1: Ejecutar ambos servidores en terminales separadas
+El proyecto consta de dos scripts principales para probar la funcionalidad:
 
-**Terminal 1 - Backend API (Puerto 3000):**
+### 1. Poblar la Base de Datos (`seed`)
+
+Este script genera 1000 estudiantes aleatorios, sus puntuaciones y algunas sesiones activas. **Ejecutar esto primero.**
 
 ```bash
-cd backend
+node src/scripts/seed.js
+```
+*Esto limpiará la base de datos actual (FLUSHDB) y generará nuevos datos.*
+
+### 2. Iniciar el Servidor (`start`)
+
+Esto levantará el servidor Express en `http://localhost:3000`.
+
+```bash
 npm start
 ```
 
-**Terminal 2 - Frontend Server (Puerto 8080):**
+### 3. Usar el Dashboard
 
+Abre tu navegador y visita **`http://localhost:3000`**. Desde ahí podrás visualizar la demostración interactiva:
+1.  **Gestión de Sesiones**: Login/Logout con tokens.
+2.  **Leaderboard en Vivo**: Tabla de posiciones que se actualiza al instante.
+3.  **Benchmark Comparativo**: ¿SQL vs Redis? Ejecuta una carrera en tiempo real y ve la diferencia gráfica.
+4.  **Prueba de Estrés**: Lanza 1,000 usuarios concurrentes (3,000 operaciones) y mide el throughput real de tu máquina.
+    *   *Tip: Abre la consola del navegador (F12) para ver los logs detallados de cada operación.*
+
+### (Opcional) Ejecutar Pruebas de Consola (`queries`)
+Si prefieres ver los logs en la terminal:
 ```bash
-cd backend
-npm run frontend
+node src/scripts/queries.js
 ```
 
-### Opción 2: Abrir directamente el HTML (puede tener errores CORS)
+## Estructura del Proyecto
 
-```bash
-# Abre frontend/index.html en el navegador
-```
+*   `src/server.js`: Servidor Express y API REST.
+*   `public/`: Frontend de demostración (HTML/JS).
+*   `src/config/redis.js`: Configuración y cliente de conexión Redis.
+*   `src/services/`
+    *   `sessionService.js`: Manejo de sesiones (Hash) con TTL.
+    *   `leaderboardService.js`: Gestión de rankings (Sorted Sets).
+    *   `cacheService.js`: Utilidad para caché genérico (Strings).
+*   `src/scripts/`
+    *   `seed.js`: Script de generación de datos fake.
+    *   `queries.js`: Script de validación por consola.
 
-## Acceso a la Aplicación
+## Documentación Técnica
 
-1. Abre tu navegador en: `http://localhost:8080`
-2. **Credenciales de Login**:
-   - Usuario: `student1`
-   - Contraseña: `password123`
-
-## Uso
-
-1.  **Login**: Ingresa las credenciales mencionadas arriba.
-2.  **Perfil**: Haz clic en "Obtener Perfil". La primera vez toma 2s (BD simulada), la segunda es instantánea (Caché).
-3.  **Leaderboard**: Ingresa un puntaje y envía. Haz clic en "Actualizar Tabla" para ver el ranking.
-
-## Prueba de Rendimiento
-
-Para simular 1000 usuarios concurrentes:
-
-```bash
-cd backend
-npm run stress
-```
-
-## Arquitectura
-
-- **Backend**: Node.js (Express) - Puerto 3000
-- **Frontend**: Servidor estático - Puerto 8080
-- **Base de Datos**: Simulada (En memoria / Mock)
-- **Caché/Almacén**: Redis (o Mock Redis si no está instalado)
-
-## API Endpoints
-
-### Sesiones
-
-- `POST /api/sessions/login` - Iniciar sesión
-  ```json
-  { "username": "student1", "password": "password123" }
-  ```
-- `POST /api/sessions/logout` - Cerrar sesión
-  ```json
-  { "sessionId": "uuid-here" }
-  ```
-- `GET /api/sessions/check?sessionId=uuid` - Verificar sesión activa
-
-### Datos (Caché)
-
-- `GET /api/data/student/:id` - Obtener perfil de estudiante (con caché)
-
-### Leaderboard
-
-- `POST /api/leaderboard/submit` - Enviar puntaje
-  ```json
-  { "username": "student1", "score": 95.5 }
-  ```
-- `GET /api/leaderboard` - Obtener top 10 usuarios
-
-## Scripts Disponibles
-
-```bash
-npm start         # Iniciar servidor backend
-npm run dev       # Iniciar con nodemon (auto-reload)
-npm run frontend  # Iniciar servidor frontend
-npm run stress    # Ejecutar prueba de estrés
-```
-
-## Troubleshooting
-
-### Error: "Cannot connect to Redis"
-
-- **Solución**: El sistema usa Mock Redis automáticamente. Verifica que `USE_MOCK_REDIS=true` en `.env`
-
-### Error: CORS
-
-- **Solución**: Usa `npm run frontend` en lugar de abrir el HTML directamente
-
-### Las sesiones no expiran
-
-- **Solución**: Verifica que MockRedisClient tenga el método `expire()` implementado
-
-### Puntajes no se ordenan correctamente
-
-- **Solución**: Asegúrate de que los scores se conviertan a números con `parseFloat()`
-
-## Tecnologías Utilizadas
-
-- **Backend**: Node.js, Express.js
-- **Caché**: Redis (o Mock Redis)
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Utilidades**: UUID, dotenv, morgan, cors
-
-## Notas Importantes
-
-- Si Redis no está instalado localmente, el sistema automáticamente usa un **Mock Redis** en memoria.
-- Para evitar errores CORS, usa el servidor frontend en puerto 8080 en lugar de abrir el HTML directamente.
-- El sistema incluye un diseño moderno con glassmorphism y animaciones suaves.
-
-## Licencia
-
-ISC
+Para ver la justificación técnica, diagramas y análisis de resultados, consulta el archivo generado `report.md`.
