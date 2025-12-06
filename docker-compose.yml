@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  # Base de datos Redis
+  redis:
+    image: redis:alpine
+    container_name: redis-student-portal
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes  # Persistencia activada
+
+  # Interfaz gráfica para ver los datos (Excelente para la demo)
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-gui
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:
